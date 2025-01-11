@@ -1,44 +1,47 @@
 from rest_framework import serializers
-from .models import User, FacialRecognition, SkillPath, AptitudeTest, Quiz, JobListing
+from .models import UserProfile, SkillPath, Course, CourseEnrollment, JobSkillApplication, Quiz, QuizSubmission, RealTimeInteraction, SystemConfiguration
 
-
-# User Serializer
-class UserSerializer(serializers.ModelSerializer):
+class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ['name', 'left_face_image', 'right_face_image', 'front_image']
+        model = UserProfile
+        fields = '__all__'  # Include all fields
 
-
-# FacialRecognition Serializer
-class FacialRecognitionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FacialRecognition
-        fields = ['user', 'image_data']
-
-
-# SkillPath Serializer
 class SkillPathSerializer(serializers.ModelSerializer):
     class Meta:
         model = SkillPath
-        fields = ['user', 'path_data']
+        fields = '__all__'
 
-
-# AptitudeTest Serializer
-class AptitudeTestSerializer(serializers.ModelSerializer):
+class CourseSerializer(serializers.ModelSerializer):
     class Meta:
-        model = AptitudeTest
-        fields = ['user', 'test_data', 'result']
+        model = Course
+        fields = '__all__'
 
+class CourseEnrollmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CourseEnrollment
+        fields = '__all__'
 
-# Quiz Serializer
+class JobSkillApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobSkillApplication
+        fields = '__all__'
+
 class QuizSerializer(serializers.ModelSerializer):
     class Meta:
         model = Quiz
-        fields = ['course_id', 'question_data', 'answers']
+        fields = '__all__'
 
-
-# JobListing Serializer
-class JobListingSerializer(serializers.ModelSerializer):
+class QuizSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = JobListing
-        fields = ['title', 'company', 'location', 'description', 'salary', 'is_active']
+        model = QuizSubmission
+        fields = '__all__'
+
+class RealTimeInteractionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RealTimeInteraction
+        fields = '__all__'
+
+class SystemConfigurationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SystemConfiguration
+        fields = '__all__'

@@ -1,72 +1,104 @@
 from django.db import models
 
-# Create your models here.
-from django.db import models
-
-class User(models.Model):
+class UserProfile(models.Model):
     name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
-    date_of_birth = models.DateField(null=True, blank=True)
+    english_language_knowledge = models.BooleanField(default=False)
+    basic_computing_knowledge = models.BooleanField(default=False)
+    profile_picture = models.ImageField(upload_to='profile_pics/', null=True, blank=True)
+    left_face_image = models.ImageField(upload_to='face_images/', null=True, blank=True)
+    right_face_image = models.ImageField(upload_to='face_images/', null=True, blank=True)
+    front_face_image = models.ImageField(upload_to='face_images/', null=True, blank=True)
+    voice_embedding = models.TextField(null=True, blank=True)  # Store voice embeddings in text format
     created_at = models.DateTimeField(auto_now_add=True)
-    
+    updated_at = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         return self.name
 
 
-
-
-
-class FacialRecognition(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='facial_recognition')
-    left_image = models.ImageField(upload_to='facial_recognition/left/')
-    right_image = models.ImageField(upload_to='facial_recognition/right/')
-    front_image = models.ImageField(upload_to='facial_recognition/front/')
-    embeddings = models.JSONField(null=True, blank=True)  # To store facial feature data (optional)
-    
-    def __str__(self):
-        return f"Facial recognition data for {self.user.name}"
-
-
-
 class SkillPath(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='skill_path')
-    path_details = models.TextField()
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    path_name = models.CharField(max_length=100)
+    path_description = models.TextField()
+    is_completed = models.BooleanField(default=False)  # Default to False when not completed
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.name} - {self.path_name}"
+
+
+class Course(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    difficulty_level = models.CharField(max_length=50, choices=[('basic', 'Basic'), ('advanced', 'Advanced')], default='basic')
+    content = models.TextField()  # Could be linked to actual files or lessons
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Skill Path for {self.user.name}"
+        return self.name
 
 
+class CourseEnrollment(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    start_date = models.DateTimeField(auto_now_add=True)
+    progress = models.IntegerField(default=0)  # Default to 0% completion
+    is_completed = models.BooleanField(default=False)  # Default to False when not completed
+    
+    def __str__(self):
+        return f"{self.user.name} - {self.course.name}"
 
-class AptitudeTest(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='aptitude_test')
-    score = models.FloatField()
-    test_date = models.DateTimeField(auto_now_add=True)
+
+class JobSkillApplication(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    job_title = models.CharField(max_length=200)
+    job_description = models.TextField()
+    applied_on = models.DateTimeField(auto_now_add=True)
+    task_submitted = models.BooleanField(default=False)  # Default to False, meaning task has not been submitted
+    submission = models.TextField(null=True, blank=True)  # Optional task submission text
+    feedback = models.TextField(null=True, blank=True)  # Optional feedback
 
     def __str__(self):
-        return f"Aptitude test for {self.user.name}"
-
+        return f"{self.user.name} - {self.job_title}"
 
 
 class Quiz(models.Model):
-    course_id = models.CharField(max_length=100)
-    question = models.TextField()
-    options = models.JSONField()  # Storing multiple-choice options
-    correct_answer = models.CharField(max_length=100)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    question_text = models.TextField()
+    answer_choices = models.JSONField()  # Store choices as a JSON array
+    correct_answer = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Quiz for {self.course_id}"
+        return f"Quiz for {self.course.name}"
 
 
-
-class JobListing(models.Model):
-    title = models.CharField(max_length=255)
-    description = models.TextField()
-    company_name = models.CharField(max_length=255)
-    job_type = models.CharField(max_length=50)
-    location = models.CharField(max_length=255)
-    posted_at = models.DateTimeField(auto_now_add=True)
-    is_active = models.BooleanField(default=True)
+class QuizSubmission(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+    submitted_answers = models.JSONField()  # Store answers as a JSON array
+    score = models.IntegerField(default=0)  # Default to 0 if no score is provided
+    feedback = models.TextField(null=True, blank=True)  # Optional feedback
 
     def __str__(self):
-        return f"{self.title} at {self.company_name}"
+        return f"{self.user.name} - {self.quiz.course.name} Quiz"
+
+
+class RealTimeInteraction(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    interaction_type = models.CharField(max_length=50, choices=[('voice', 'Voice'), ('text', 'Text')], default='text')
+    interaction_data = models.TextField()  # Could be audio, text, or commands
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Interaction with {self.user.name} at {self.timestamp}"
+
+
+class SystemConfiguration(models.Model):
+    config_name = models.CharField(max_length=100)
+    config_value = models.TextField()
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Config: {self.config_name}"
